@@ -1712,11 +1712,12 @@ static void mmc_detect(struct mmc_host *host)
 	}
 }
 
-static int _mmc_suspend(struct mmc_host *host, bool is_suspend)
+/*
+ * Suspend callback from host.
+ */
+static int mmc_suspend(struct mmc_host *host)
 {
 	int err = 0;
-	unsigned int notify_type = is_suspend ? EXT_CSD_POWER_OFF_SHORT :
-					EXT_CSD_POWER_OFF_LONG;
 
 	BUG_ON(!host);
 	BUG_ON(!host->card);
@@ -1728,7 +1729,7 @@ static int _mmc_suspend(struct mmc_host *host, bool is_suspend)
 		goto out;
 
 	if (mmc_can_poweroff_notify(host->card))
-		err = mmc_poweroff_notify(host->card, notify_type);
+		err = mmc_poweroff_notify(host->card, EXT_CSD_POWER_OFF_SHORT);
 	else if (mmc_card_can_sleep(host))
 		err = mmc_card_sleep(host);
 	else if (!mmc_host_is_spi(host))
@@ -1738,14 +1739,6 @@ static int _mmc_suspend(struct mmc_host *host, bool is_suspend)
 out:
 	mmc_release_host(host);
 	return err;
-}
-
-/*
- * Suspend callback from host.
- */
-static int mmc_suspend(struct mmc_host *host)
-{
-	return _mmc_suspend(host, true);
 }
 
 /*
